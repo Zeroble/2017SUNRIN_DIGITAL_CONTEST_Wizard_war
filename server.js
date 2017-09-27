@@ -6,7 +6,7 @@ server.listen(80)
 
 app.get('/',(req,res)=>{
   console.log("connected");
-  res.sendfile(__dirname+'/html.html')
+  res.sendfile(__dirname+'/index.html')
 });
 
 io.on('connect',(socket)=>{
