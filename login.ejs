@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <script src="http://code.jquery.com/jquery-latest.js"></script>
+
+</head>
+
+<body>
+    <!-- <form action="localhost/afterSignUp"> -->
+    <form id="signupform"  onsubmit="return true" action="/signin" method="post">
+        <input type="text" id="id" name="id">
+        <input type="text" id="passwd" name="passwd">
+        <div onclick="signup()" style="background-color : red;width:50px;height:50px"></div>
+        <input type="submit" method="post" id="btn">확인</input>
+    </form>
+    <%=hello%>
+</body>
+<script>
+</script>
+</html>
