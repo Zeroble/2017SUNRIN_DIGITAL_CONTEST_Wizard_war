@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.js"></script>    
+    <title>MCMT</title>
+</head>
+
+<body>
+    <canvas id="gameCanvas" width="500" height="500"></canvas>
+    <script>
+        var socket = io.connect('/');
+        window.onload = function () {
+            this.socket.emit("onload",{
+                socketid : this.socket.id,
+                x : this.player.tempX,
+                y : this.player.tempY,
+                color : player.color
+            })
+        }
+        const canvas = document.getElementById('gameCanvas');
+        const context = canvas.getContext('2d');
+        const SPEED = 3
+        class gameObject {
+            constructor(width, height) {
+                this.x = 0
+                this.y = 0
+                this.width = width
+                this.height = height
+            }
+        }
+        class Player extends gameObject {
+            constructor() {
+                super(50, 50)
+                this.x = canvas.width / 2-this.height/2
+                this.y = canvas.height/ 2 - this.width/2
+                this.tempX = this.x
+                this.tempY = this.y
+                this.color = "#"+Math.floor(Math.random()*9)+Math.floor(Math.random()*9)+Math.floor(Math.random()*9)+Math.floor(Math.random()*9)+Math.floor(Math.random()*9)+Math.floor(Math.random()*9)
+            }
+        }
+        class mouseClickedPoint{
+            constructor(){
+                this.x = player.tempX
+                this.y = player.tempY
+            }
+        }
+        class points{
+            constructor(){
+                this.atan2
+                this.sin
+                this.cos
+                this.subx
+                this.suby
+            }
+        }
+        player = new Player()
+        mouseClickedPoint = new mouseClickedPoint()
+        points = new points()
+        window.requestAnimationFrame(run);
+        
+        function setMouseSamePlayer(){
+            mouseClickedPoint.x = player.tempX
+            mouseClickedPoint.y = player.tempY
+        }
+        function run() {
+            context.fillStyle = 'black';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            
+            points.subx = mouseClickedPoint.x - player.tempX
+            points.suby = mouseClickedPoint.y - player.tempY
+            points.atan2 = Math.atan2(points.subx,points.suby)
+            points.sin = Math.sin(points.atan2)
+            points.cos = Math.cos(points.atan2)
+
+            if(points.subx>0?player.tempX+points.sin*SPEED>mouseClickedPoint.x:player.tempX+points.sin*SPEED<mouseClickedPoint.x||points.suby>=0?player.tempY+points.cos*SPEED>mouseClickedPoint.y:player.tempY+points.cos*SPEED<mouseClickedPoint.y){
+                player.tempX = mouseClickedPoint.x
+                player.tempY = mouseClickedPoint.y
+            }   
+            else if(player.tempX<0){
+                player.tempX = 0
+                setMouseSamePlayer()
+            }
+            else if(player.tempX+player.width>canvas.width){
+                player.tempX = canvas.width-player.width
+                setMouseSamePlayer()
+            }
+            else if(player.tempY<0){
+                player.tempY = 0
+                setMouseSamePlayer()
+            }
+            else if(player.tempY+player.height>canvas.height){
+                player.tempY = canvas.height-player.height
+                setMouseSamePlayer()
+            }
+            else{
+                player.tempX += points.sin*SPEED
+                player.tempY += points.cos*SPEED
+                console.log("moving")
+            }
+            socket.emit("update",{
+                x : player.tempX,
+                y : player.tempY
+            })
+            context.fillStyle = player.color
+            context.fillRect(player.tempX, player.tempY, player.width, player.height)
+
+            window.requestAnimationFrame(run);
+        }
+
+        document.oncontextmenu = function () { return false; } //메뉴 뜨는거 방지
+      
+        function getMousePosition(event) {//마우스 정확한 위치구하는 함수
+            const rect = canvas.getBoundingClientRect()
+            return {
+                x: event.clientX - rect.left,
+                y: event.clientY - rect.top
+            }
+        }
+        window.addEventListener('mousedown', function (event) {
+            if (event.button == 2) {//마우스 오른쪽 클릭시
+                let pos = getMousePosition(event); 
+                mouseClickedPoint.x = pos.x-(player.width/2)
+                mouseClickedPoint.y = pos.y-(player.height/2)
+            }
+        })
+    </script>
+</body>
+
+</html>
