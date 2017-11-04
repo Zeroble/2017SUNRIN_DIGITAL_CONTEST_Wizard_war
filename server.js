@@ -4,7 +4,7 @@ server = require('http').Server(app);
 var io = require('socket.io').listen(server)
 // var db = require('./mongo');
 var bodyParser = require('body-parser');
-var objects = {}
+var userObjects = {}
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
@@ -89,19 +89,23 @@ class userObject extends basicObject{
 io.on('connect', (socket) => {
   console.log("entered : "+socket.id);
   socket.on("onload",(data)=>{
-    objects[socket.id] = new userObject(data.x,data.y,data.color)
+    userObjects[socket.id] = new userObject(data.x,data.y,data.color)
   })
   socket.on("update",(data)=>{
-    // objects[socket.id].userObject.x = data.x
-    //objects[socket.id].y = data.y
+    userObjects[socket.id].x = data.x
+    userObjects[socket.id].y = data.y
   })
-  socket.on('room', (data) => {
-    console.log(data)
-    // var arr = Object.keys(io.sockets.connected)
-    socket.broadcast.emit('room', data)
+  socket.on('disconnect', (data) => {
+    delete userObjects[socket.id]
+    io.emit('disconnect',socket.id)
   })
-})
+  // socket.on('room', (data) => {
+  //   // var arr = Object.keys(io.sockets.connected)
+  //   socket.broadcast.emit('room', data)
+  // })
+  setInterval(function() {
+    // console.log(userObjects);
+    io.emit('update',userObjects)
+  },10)
 
-setInterval(function() {
-  console.log(objects)
-},100)
+})

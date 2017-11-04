@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.js"></script>    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.js"></script>
     <title>MCMT</title>
 </head>
 
@@ -11,12 +11,13 @@
     <canvas id="gameCanvas" width="500" height="500"></canvas>
     <script>
         var socket = io.connect('/');
+        let copyedUserObjects
         window.onload = function () {
-            this.socket.emit("onload",{
-                socketid : this.socket.id,
-                x : this.player.tempX,
-                y : this.player.tempY,
-                color : player.color
+            this.socket.emit("onload", {
+                socketid: this.socket.id,
+                x: this.player.tempX,
+                y: this.player.tempY,
+                color: player.color
             })
         }
         const canvas = document.getElementById('gameCanvas');
@@ -33,21 +34,21 @@
         class Player extends gameObject {
             constructor() {
                 super(50, 50)
-                this.x = canvas.width / 2-this.height/2
-                this.y = canvas.height/ 2 - this.width/2
+                this.x = canvas.width / 2 - this.height / 2
+                this.y = canvas.height / 2 - this.width / 2
                 this.tempX = this.x
                 this.tempY = this.y
-                this.color = "#"+Math.floor(Math.random()*9)+Math.floor(Math.random()*9)+Math.floor(Math.random()*9)+Math.floor(Math.random()*9)+Math.floor(Math.random()*9)+Math.floor(Math.random()*9)
+                this.color = "#" + Math.floor(Math.random() * 9) + Math.floor(Math.random() * 9) + Math.floor(Math.random() * 9) + Math.floor(Math.random() * 9) + Math.floor(Math.random() * 9) + Math.floor(Math.random() * 9)
             }
         }
-        class mouseClickedPoint{
-            constructor(){
+        class mouseClickedPoint {
+            constructor() {
                 this.x = player.tempX
                 this.y = player.tempY
             }
         }
-        class points{
-            constructor(){
+        class points {
+            constructor() {
                 this.atan2
                 this.sin
                 this.cos
@@ -59,58 +60,86 @@
         mouseClickedPoint = new mouseClickedPoint()
         points = new points()
         window.requestAnimationFrame(run);
-        
-        function setMouseSamePlayer(){
+
+        function stopMoving() {
             mouseClickedPoint.x = player.tempX
             mouseClickedPoint.y = player.tempY
         }
         function run() {
             context.fillStyle = 'black';
             context.fillRect(0, 0, canvas.width, canvas.height);
-            
+
+            context.fillStyle = player.color
+            context.fillRect(player.x, player.y, player.width, player.height)
+
             points.subx = mouseClickedPoint.x - player.tempX
             points.suby = mouseClickedPoint.y - player.tempY
-            points.atan2 = Math.atan2(points.subx,points.suby)
+            points.atan2 = Math.atan2(points.subx, points.suby)
             points.sin = Math.sin(points.atan2)
             points.cos = Math.cos(points.atan2)
 
-            if(points.subx>0?player.tempX+points.sin*SPEED>mouseClickedPoint.x:player.tempX+points.sin*SPEED<mouseClickedPoint.x||points.suby>=0?player.tempY+points.cos*SPEED>mouseClickedPoint.y:player.tempY+points.cos*SPEED<mouseClickedPoint.y){
+            for (let i in copyedUserObjects) {
+                    if (i == socket.id) {
+                        player.x = copyedUserObjects[i].x
+                        player.y = copyedUserObjects[i].y
+                    }
+                    else {
+                        context.fillStyle = copyedUserObjects[i].color
+                        context.fillRect(copyedUserObjects[i].x, copyedUserObjects[i].y, copyedUserObjects[i].width, copyedUserObjects[i].height)
+                        // console.log(copyedUserObjects[i])
+                    }
+                }
+            if (points.subx > 0 ? player.tempX + points.sin * SPEED > mouseClickedPoint.x : player.tempX + points.sin * SPEED < mouseClickedPoint.x || points.suby >= 0 ? player.tempY + points.cos * SPEED > mouseClickedPoint.y : player.tempY + points.cos * SPEED < mouseClickedPoint.y) {
+                //근처에 도달하면 정지
                 player.tempX = mouseClickedPoint.x
                 player.tempY = mouseClickedPoint.y
-            }   
-            else if(player.tempX<0){
+            }
+            
+            //     1
+            //    ---
+            // 2 ㅣ  ㅣ 3 
+            //    ---
+            //     4
+            else if (player.tempX < 0) {
                 player.tempX = 0
-                setMouseSamePlayer()
+                stopMoving()
             }
-            else if(player.tempX+player.width>canvas.width){
-                player.tempX = canvas.width-player.width
-                setMouseSamePlayer()
+            else if (player.tempX + player.width > canvas.width) {
+                player.tempX = canvas.width - player.width
+                stopMoving()
             }
-            else if(player.tempY<0){
+            else if (player.tempY < 0) {
                 player.tempY = 0
-                setMouseSamePlayer()
+                stopMoving()
             }
-            else if(player.tempY+player.height>canvas.height){
-                player.tempY = canvas.height-player.height
-                setMouseSamePlayer()
+            else if (player.tempY + player.height > canvas.height) {
+                player.tempY = canvas.height - player.height
+                stopMoving()
             }
-            else{
-                player.tempX += points.sin*SPEED
-                player.tempY += points.cos*SPEED
-                console.log("moving")
+            else {
+                player.tempX += points.sin * SPEED
+                player.tempY += points.cos * SPEED
+                // console.log("moving")
             }
-            socket.emit("update",{
-                x : player.tempX,
-                y : player.tempY
+            socket.emit("update", {
+                x: player.tempX,
+                y: player.tempY
             })
-            context.fillStyle = player.color
-            context.fillRect(player.tempX, player.tempY, player.width, player.height)
-
+            // console.log("emit")
             window.requestAnimationFrame(run);
+
         }
+        socket.on('update', (userObjects) => {
+            try {
+                copyedUserObjects = JSON.parse(JSON.stringify(userObjects));
+                
+            } catch (error) {
+                console.log(error)
+            }
+        })
 
         document.oncontextmenu = function () { return false; } //메뉴 뜨는거 방지
-      
+
         function getMousePosition(event) {//마우스 정확한 위치구하는 함수
             const rect = canvas.getBoundingClientRect()
             return {
@@ -120,9 +149,9 @@
         }
         window.addEventListener('mousedown', function (event) {
             if (event.button == 2) {//마우스 오른쪽 클릭시
-                let pos = getMousePosition(event); 
-                mouseClickedPoint.x = pos.x-(player.width/2)
-                mouseClickedPoint.y = pos.y-(player.height/2)
+                let pos = getMousePosition(event);
+                mouseClickedPoint.x = pos.x - (player.width / 2)
+                mouseClickedPoint.y = pos.y - (player.height / 2)
             }
         })
     </script>

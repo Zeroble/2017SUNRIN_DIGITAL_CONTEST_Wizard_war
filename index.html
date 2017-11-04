@@ -46,8 +46,8 @@
         let mousePoint = new mouseClickPoint()
         const downKeys = {};
 
-        window.addEventListener('keydown', onKeyDown);
-        window.addEventListener('keyup', onKeyUp);
+        // window.addEventListener('keydown', onKeyDown);
+        // window.addEventListener('keyup', onKeyUp);
 
         function onKeyDown(event) {
             downKeys[event.code] = true;
@@ -65,28 +65,16 @@
             context.fillStyle = 'white'
             context.fillRect(player.x, player.y, player.width, player.height)
 
-            if (downKeys['ArrowLeft'])
-                player.x -= 10;
-            if (downKeys['ArrowRight'])
-                player.x += 10;
-            if (downKeys['ArrowUp'])
-                player.y -= 10;
-            if (downKeys['ArrowDown'])
-                player.y += 10;
-            if (nickname === '2') {
-                socket.emit('room', {
-                    x: player.x,
-                    y: player.y
-                });
-            }
+            // if (downKeys['ArrowLeft'])
+            //     player.x -= 10;
+            // if (downKeys['ArrowRight'])
+            //     player.x += 10;
+            // if (downKeys['ArrowUp'])
+            //     player.y -= 10;
+            // if (downKeys['ArrowDown'])
+            //     player.y += 10;
             window.requestAnimationFrame(run);
         }
-        socket.on('room', (data) => {
-            if (nickname === '1') {
-                player.x = data.x
-                player.y = data.y
-            }
-        })
         window.addEventListener('mousedown', function (event){
           if(event.button == 2){
             if ((event.button==2) || (event.button==2)) {
