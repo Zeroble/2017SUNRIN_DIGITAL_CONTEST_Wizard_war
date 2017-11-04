@@ -92,12 +92,21 @@ io.on('connect', (socket) => {
     userObjects[socket.id] = new userObject(data.x,data.y,data.color)
   })
   socket.on("update",(data)=>{
+    try{
     userObjects[socket.id].x = data.x
     userObjects[socket.id].y = data.y
+    // console.log("update "+data.x)
+  }
+  catch(error){
+    console.log("\n\n"+socket.id)
+    console.log(userObjects)
+    console.log(error+"\n\n")
+  }
   })
   socket.on('disconnect', (data) => {
     delete userObjects[socket.id]
     io.emit('disconnect',socket.id)
+    console.log('delete : '+socket.id);
   })
   // socket.on('room', (data) => {
   //   // var arr = Object.keys(io.sockets.connected)

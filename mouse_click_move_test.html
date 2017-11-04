@@ -13,11 +13,11 @@
         var socket = io.connect('/');
         let copyedUserObjects
         window.onload = function () {
-            this.socket.emit("onload", {
-                socketid: this.socket.id,
-                x: this.player.tempX,
-                y: this.player.tempY,
-                color: player.color
+            socket.emit("onload", {
+                socketid: socket.id,
+                x: player.tempX,
+                y: player.tempY,
+                color: player.color,
             })
         }
         const canvas = document.getElementById('gameCanvas');
@@ -79,22 +79,22 @@
             points.cos = Math.cos(points.atan2)
 
             for (let i in copyedUserObjects) {
-                    if (i == socket.id) {
-                        player.x = copyedUserObjects[i].x
-                        player.y = copyedUserObjects[i].y
-                    }
-                    else {
-                        context.fillStyle = copyedUserObjects[i].color
-                        context.fillRect(copyedUserObjects[i].x, copyedUserObjects[i].y, copyedUserObjects[i].width, copyedUserObjects[i].height)
-                        // console.log(copyedUserObjects[i])
-                    }
+                if (i == socket.id) {
+                    player.x = copyedUserObjects[i].x
+                    player.y = copyedUserObjects[i].y
                 }
+                else {
+                    context.fillStyle = copyedUserObjects[i].color
+                    context.fillRect(copyedUserObjects[i].x, copyedUserObjects[i].y, copyedUserObjects[i].width, copyedUserObjects[i].height)
+                    // console.log(copyedUserObjects[i])
+                }
+            }
             if (points.subx > 0 ? player.tempX + points.sin * SPEED > mouseClickedPoint.x : player.tempX + points.sin * SPEED < mouseClickedPoint.x || points.suby >= 0 ? player.tempY + points.cos * SPEED > mouseClickedPoint.y : player.tempY + points.cos * SPEED < mouseClickedPoint.y) {
                 //근처에 도달하면 정지
                 player.tempX = mouseClickedPoint.x
                 player.tempY = mouseClickedPoint.y
             }
-            
+
             //     1
             //    ---
             // 2 ㅣ  ㅣ 3 
@@ -121,10 +121,12 @@
                 player.tempY += points.cos * SPEED
                 // console.log("moving")
             }
-            socket.emit("update", {
-                x: player.tempX,
-                y: player.tempY
-            })
+            if (player.tempX != mouseClickedPoint.x && player.tempY != mouseClickedPoint.y) {
+                socket.emit("update", {
+                    x: player.tempX,
+                    y: player.tempY
+                })
+            }
             // console.log("emit")
             window.requestAnimationFrame(run);
 
@@ -132,7 +134,7 @@
         socket.on('update', (userObjects) => {
             try {
                 copyedUserObjects = JSON.parse(JSON.stringify(userObjects));
-                
+
             } catch (error) {
                 console.log(error)
             }
