@@ -4,24 +4,70 @@
 <head>
     <meta charset="UTF-8">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.js"></script>
+    <!-- <script src="./skill.js"></script> -->
     <title>MCMT</title>
+    <style>
+        canvas {
+            position: absolute;
+            border: solid;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+
+            margin: auto;
+        }
+    </style>
 </head>
 
 <body>
-    <canvas id="gameCanvas" width="500" height="500"></canvas>
+    매칭중
     <script>
         var socket = io.connect('/');
         let copyedUserObjects
+        let mySkills = []
+        let otherPlayerImg = new Image()
+        const canvasWidth = 1200
+        const canvasHeight = 450
+        groundImage = new Image()
+        groundImage.src = "./ground.png"
         window.onload = function () {
-            socket.emit("onload", {
-                socketid: socket.id,
+            socket.emit("matching")
+        }
+        socket.on('matching', (event) => {
+            document.body.innerHTML = '로딩중'
+            roomname = event.roomname
+            if(event.player === 1){
+                player = new Player('./player1.png',300)
+                otherPlayerImg.src = './player2.png'
+            }
+            else{
+                player = new Player('./player2.png',900)
+                otherPlayerImg.src = './player1.png'
+            }
+            mouseClickedPoint = new mouseClickedPoint()
+            points = new points()
+            
+            socket.emit("ready", {
+                roomname: roomname,
                 x: player.tempX,
                 y: player.tempY,
                 color: player.color,
             })
-        }
-        const canvas = document.getElementById('gameCanvas');
-        const context = canvas.getContext('2d');
+        })
+        socket.on('ready', (event) => {
+            document.body.innerHTML = '<canvas id="gameCanvas" width="'+canvasWidth+'" height="'+canvasHeight+'"></canvas>'
+            document.body.background = './map_outer.png'
+            // let clientXY = [screen.height-20,document.body.clientWidth]
+            document.body.style.backgroundSize = '100%'
+            canvas = document.getElementById('gameCanvas');
+            context = canvas.getContext('2d');
+            window.requestAnimationFrame(run);
+        })
+        var canvas
+        var context
+        var roomname
+
         const SPEED = 3
         class gameObject {
             constructor(width, height) {
@@ -32,10 +78,12 @@
             }
         }
         class Player extends gameObject {
-            constructor() {
-                super(50, 50)
-                this.x = canvas.width / 2 - this.height / 2
-                this.y = canvas.height / 2 - this.width / 2
+            constructor(img,x) {
+                super(16*3, 20*3)
+                this.playerImg = new Image()
+                this.playerImg.src = img
+                this.x = x
+                this.y = (canvasHeight-this.height)/2
                 this.tempX = this.x
                 this.tempY = this.y
                 this.color = "#" + Math.floor(Math.random() * 9) + Math.floor(Math.random() * 9) + Math.floor(Math.random() * 9) + Math.floor(Math.random() * 9) + Math.floor(Math.random() * 9) + Math.floor(Math.random() * 9)
@@ -56,21 +104,14 @@
                 this.suby
             }
         }
-        player = new Player()
-        mouseClickedPoint = new mouseClickedPoint()
-        points = new points()
-        window.requestAnimationFrame(run);
 
         function stopMoving() {
             mouseClickedPoint.x = player.tempX
             mouseClickedPoint.y = player.tempY
         }
         function run() {
-            context.fillStyle = 'black';
-            context.fillRect(0, 0, canvas.width, canvas.height);
-
-            context.fillStyle = player.color
-            context.fillRect(player.x, player.y, player.width, player.height)
+            context.drawImage(groundImage,0,0,canvas.width,canvas.height)   
+            context.drawImage(player.playerImg,player.x,player.y,player.width,player.height)   
 
             points.subx = mouseClickedPoint.x - player.tempX
             points.suby = mouseClickedPoint.y - player.tempY
@@ -84,15 +125,12 @@
                     player.y = copyedUserObjects[i].y
                 }
                 else {
-                    context.fillStyle = copyedUserObjects[i].color
-                    context.fillRect(copyedUserObjects[i].x, copyedUserObjects[i].y, copyedUserObjects[i].width, copyedUserObjects[i].height)
-                    // console.log(copyedUserObjects[i])
+                    context.drawImage(otherPlayerImg,copyedUserObjects[i].x,copyedUserObjects[i].y,player.width,player.height)   
                 }
             }
             if (points.subx > 0 ? player.tempX + points.sin * SPEED > mouseClickedPoint.x : player.tempX + points.sin * SPEED < mouseClickedPoint.x || points.suby >= 0 ? player.tempY + points.cos * SPEED > mouseClickedPoint.y : player.tempY + points.cos * SPEED < mouseClickedPoint.y) {
                 //근처에 도달하면 정지
-                player.tempX = mouseClickedPoint.x
-                player.tempY = mouseClickedPoint.y
+                stopMoving()
             }
 
             //     1
@@ -121,27 +159,32 @@
                 player.tempY += points.cos * SPEED
                 // console.log("moving")
             }
-            if (player.tempX != mouseClickedPoint.x && player.tempY != mouseClickedPoint.y) {
+            if (player.tempX != mouseClickedPoint.x && player.tempY != mouseClickedPoint.y) {//움직이지 않을때
                 socket.emit("update", {
                     x: player.tempX,
-                    y: player.tempY
+                    y: player.tempY,
+                    roomname:roomname
                 })
             }
-            // console.log("emit")
             window.requestAnimationFrame(run);
 
         }
         socket.on('update', (userObjects) => {
             try {
                 copyedUserObjects = JSON.parse(JSON.stringify(userObjects));
-
             } catch (error) {
                 console.log(error)
             }
         })
 
         document.oncontextmenu = function () { return false; } //메뉴 뜨는거 방지
-
+        window.addEventListener('keydown',function(event) {
+            console.log(event)
+            
+            if(event.code === 'KeyQ'||event.code === 'KeyW'||event.code === 'KeyE'||event.code === 'KeyR'){
+                document.body.style.cursor = 'crosshair'
+            }
+        })
         function getMousePosition(event) {//마우스 정확한 위치구하는 함수
             const rect = canvas.getBoundingClientRect()
             return {
@@ -154,6 +197,9 @@
                 let pos = getMousePosition(event);
                 mouseClickedPoint.x = pos.x - (player.width / 2)
                 mouseClickedPoint.y = pos.y - (player.height / 2)
+            }
+            else if(event.button == 0){
+                document.body.style.cursor = 'Auto'                
             }
         })
     </script>
