@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.js"></script>
-    <!-- <script src="./skill.js"></script> -->
+    <script src="./skill.js"></script>
     <title>MCMT</title>
     <style>
         canvas {
@@ -17,37 +17,57 @@
 
             margin: auto;
         }
+
+        body {
+            background-size: 95%
+        }
     </style>
 </head>
 
 <body>
-    매칭중
+    <p id="txt" style="
+        font-size: 4em;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translateX(-50%) translateY(-50%);
+        margin: auto;">Matching</p>
     <script>
         var socket = io.connect('/');
         let copyedUserObjects
         let mySkills = []
         let otherPlayerImg = new Image()
+        let matching
         const canvasWidth = 1200
         const canvasHeight = 450
         groundImage = new Image()
         groundImage.src = "./ground.png"
         window.onload = function () {
             socket.emit("matching")
+            let a = ".";
+            matching = setInterval(function () {
+                document.getElementById('txt').innerHTML = "Matching" + a;
+                a += ".";
+                if (a == "....") {
+                    a = "";
+                }
+            }, 1000);
         }
         socket.on('matching', (event) => {
+            clearInterval(matching);
             document.body.innerHTML = '로딩중'
             roomname = event.roomname
-            if(event.player === 1){
-                player = new Player('./player1.png',300)
+            if (event.player === 1) {
+                player = new Player('./player1.png', 300)
                 otherPlayerImg.src = './player2.png'
             }
-            else{
-                player = new Player('./player2.png',900)
+            else {
+                player = new Player('./player2.png', 900)
                 otherPlayerImg.src = './player1.png'
             }
             mouseClickedPoint = new mouseClickedPoint()
             points = new points()
-            
+
             socket.emit("ready", {
                 roomname: roomname,
                 x: player.tempX,
@@ -56,10 +76,9 @@
             })
         })
         socket.on('ready', (event) => {
-            document.body.innerHTML = '<canvas id="gameCanvas" width="'+canvasWidth+'" height="'+canvasHeight+'"></canvas>'
+            document.body.innerHTML = '<canvas id="gameCanvas" width="' + canvasWidth + '" height="' + canvasHeight + '"></canvas>'
             document.body.background = './map_outer.png'
             // let clientXY = [screen.height-20,document.body.clientWidth]
-            document.body.style.backgroundSize = '100%'
             canvas = document.getElementById('gameCanvas');
             context = canvas.getContext('2d');
             window.requestAnimationFrame(run);
@@ -78,12 +97,12 @@
             }
         }
         class Player extends gameObject {
-            constructor(img,x) {
-                super(16*3, 20*3)
+            constructor(img, x) {
+                super(16 * 3, 20 * 3)
                 this.playerImg = new Image()
                 this.playerImg.src = img
                 this.x = x
-                this.y = (canvasHeight-this.height)/2
+                this.y = (canvasHeight - this.height) / 2
                 this.tempX = this.x
                 this.tempY = this.y
                 this.color = "#" + Math.floor(Math.random() * 9) + Math.floor(Math.random() * 9) + Math.floor(Math.random() * 9) + Math.floor(Math.random() * 9) + Math.floor(Math.random() * 9) + Math.floor(Math.random() * 9)
@@ -110,8 +129,8 @@
             mouseClickedPoint.y = player.tempY
         }
         function run() {
-            context.drawImage(groundImage,0,0,canvas.width,canvas.height)   
-            context.drawImage(player.playerImg,player.x,player.y,player.width,player.height)   
+            context.drawImage(groundImage, 0, 0, canvas.width, canvas.height)
+            context.drawImage(player.playerImg, player.x, player.y, player.width, player.height)
 
             points.subx = mouseClickedPoint.x - player.tempX
             points.suby = mouseClickedPoint.y - player.tempY
@@ -125,7 +144,7 @@
                     player.y = copyedUserObjects[i].y
                 }
                 else {
-                    context.drawImage(otherPlayerImg,copyedUserObjects[i].x,copyedUserObjects[i].y,player.width,player.height)   
+                    context.drawImage(otherPlayerImg, copyedUserObjects[i].x, copyedUserObjects[i].y, player.width, player.height)
                 }
             }
             if (points.subx > 0 ? player.tempX + points.sin * SPEED > mouseClickedPoint.x : player.tempX + points.sin * SPEED < mouseClickedPoint.x || points.suby >= 0 ? player.tempY + points.cos * SPEED > mouseClickedPoint.y : player.tempY + points.cos * SPEED < mouseClickedPoint.y) {
@@ -163,7 +182,7 @@
                 socket.emit("update", {
                     x: player.tempX,
                     y: player.tempY,
-                    roomname:roomname
+                    roomname: roomname
                 })
             }
             window.requestAnimationFrame(run);
@@ -178,10 +197,10 @@
         })
 
         document.oncontextmenu = function () { return false; } //메뉴 뜨는거 방지
-        window.addEventListener('keydown',function(event) {
+        window.addEventListener('keydown', function (event) {
             console.log(event)
-            
-            if(event.code === 'KeyQ'||event.code === 'KeyW'||event.code === 'KeyE'||event.code === 'KeyR'){
+
+            if (event.code === 'KeyQ' || event.code === 'KeyW' || event.code === 'KeyE' || event.code === 'KeyR') {
                 document.body.style.cursor = 'crosshair'
             }
         })
@@ -198,8 +217,8 @@
                 mouseClickedPoint.x = pos.x - (player.width / 2)
                 mouseClickedPoint.y = pos.y - (player.height / 2)
             }
-            else if(event.button == 0){
-                document.body.style.cursor = 'Auto'                
+            else if (event.button == 0) {
+                document.body.style.cursor = 'Auto'
             }
         })
     </script>
