@@ -53,6 +53,7 @@ server = require('http').Server(app);
 var io = require('socket.io').listen(server)
 // var db = require('./mongo');
 var bodyParser = require('body-parser');
+
 let lobby = []
 let roomObjects = {}
 let userRoomInfo = {}
@@ -67,15 +68,11 @@ server.listen(80)
 
 console.log("server start")
 
-app.get('/', (req, res) => {
-  res.redirect("/main")
+app.get('/', (req, res) => { //메인 페이지
+  res.sendfile(__dirname+"/game.html")
 });
-
-app.get('/main', (req, res) => { //메인 페이지
-  res.sendfile(__dirname+"/mouse_click_move_test.html")
-});
-app.get('/:image', (req, res) => {
-  res.sendfile(__dirname+"/"+req.params.image)
+app.get('/res/:resource', (req, res) => {
+  res.sendfile(__dirname+"/res/"+req.params.resource)
   console.log(req.params.image);
 });
 class basicObject{
@@ -100,11 +97,20 @@ class roomObject{
     this.users = [user1,user2]
     this.roomname = this.users[0]+this.users[1]
     this.isRoomReady = false
+    this.skills
     userRoomInfo[user1] = this.roomname
     userRoomInfo[user2] = this.roomname
-    io.sockets.sockets[user1].emit('matching',{roomname:this.roomname,player:1})
+    try{
     io.sockets.sockets[user2].emit('matching',{roomname:this.roomname,player:2})
-
+    io.sockets.sockets[user1].emit('matching',{roomname:this.roomname,player:1})
+    }
+    catch(e){
+      if(io.sockets.sockets[this.users[0]] != undefined)
+        io.sockets.sockets[this.users[0]].emit('otheruser_disconnect')
+      if(io.sockets.sockets[this.users[1]] != undefined)
+        io.sockets.sockets[this.users[1]].emit('otheruser_disconnect')
+      console.log(e);
+    }
     console.log('making room : '+this.roomname);
   }
   update(){
@@ -123,11 +129,11 @@ class roomObject{
     }
   }
   disconnect(user){
-    if(this.users[0] == user)
-      io.sockets.sockets[this.users[1]].emit('disconnect',this.users[0])
-    else
-      io.sockets.sockets[this.users[0]].emit('disconnect',this.users[1])
-    this.isRoomReady = false
+    if(io.sockets.sockets[this.users[1]]!=undefined)
+      io.sockets.sockets[this.users[1]].emit('otheruser_disconnect')
+    if(io.sockets.sockets[this.users[0]]!=undefined)
+      io.sockets.sockets[this.users[0]].emit('otheruser_disconnect')
+    delete roomObjects[this.roomname]
   }
 }
 io.on('connect', (socket) => {
@@ -147,6 +153,7 @@ io.on('connect', (socket) => {
     try{
       roomObjects[data.roomname].userObjects[socket.id].x = data.x
       roomObjects[data.roomname].userObjects[socket.id].y = data.y
+      this.skills = data.skills
     // console.log("update "+data.x)
   }
   catch(error){
@@ -157,7 +164,7 @@ io.on('connect', (socket) => {
   })
   socket.on('disconnect', (data) => {
     console.log("disconnected : "+socket.id);
-    if(socket.id in lobby){
+    if(socket.id === lobby[0]){
       lobby = []
     }
     try{
@@ -168,10 +175,6 @@ io.on('connect', (socket) => {
       console.log(e);
     }
   })
-  // socket.on('room', (data) => {
-  //   // var arr = Object.keys(io.sockets.connected)
-  //   socket.broadcast.emit('room', data)
-  // })
   setInterval(function() {
     for(let room in roomObjects){
       if(roomObjects[room].isRoomReady)
