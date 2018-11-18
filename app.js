@@ -64,7 +64,7 @@ app.use(bodyParser.urlencoded({
   extended: false
 }));
 
-server.listen(80)
+server.listen(9000)
 
 console.log("server start")
 
@@ -73,7 +73,6 @@ app.get('/', (req, res) => { //메인 페이지
 });
 app.get('/res/:resource', (req, res) => {
   res.sendfile(__dirname+"/res/"+req.params.resource)
-  console.log(req.params.image);
 });
 class basicObject{
   constructor(width,height,x,y){

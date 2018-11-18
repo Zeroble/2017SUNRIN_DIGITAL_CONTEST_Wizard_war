@@ -160,7 +160,7 @@
 
             points.subx = mouseClickedPoint.x - player.tempX
             points.suby = mouseClickedPoint.y - player.tempY
-            points.atan2 = Math.atan2(points.subx, points.suby)
+            points.atan2 = Math.atan2(points.suby, points.subx)
             points.sin = Math.sin(points.atan2)
             points.cos = Math.cos(points.atan2)
 
@@ -173,7 +173,7 @@
                     context.drawImage(otherPlayerImg, copyedUserObjects[i].x, copyedUserObjects[i].y, player.width, player.height)
                 }
             }
-            if (points.subx > 0 ? player.tempX + points.sin * SPEED > mouseClickedPoint.x : player.tempX + points.sin * SPEED < mouseClickedPoint.x || points.suby >= 0 ? player.tempY + points.cos * SPEED > mouseClickedPoint.y : player.tempY + points.cos * SPEED < mouseClickedPoint.y) {
+            if (points.subx > 0 ? player.tempX + points.cos * SPEED > mouseClickedPoint.x : player.tempX + points.cos * SPEED < mouseClickedPoint.x || points.suby >= 0 ? player.tempY + points.sin * SPEED > mouseClickedPoint.y : player.tempY + points.sin * SPEED < mouseClickedPoint.y) {
                 //근처에 도달하면 정지
                 stopMoving()
             }
@@ -200,8 +200,8 @@
                 stopMoving()
             }
             else {
-                player.tempX += points.sin * SPEED
-                player.tempY += points.cos * SPEED
+                player.tempX += points.cos * SPEED
+                player.tempY += points.sin * SPEED
                 // console.log("moving")
             }
             for(let i= 0;i<mySkills.length;i++ ){
