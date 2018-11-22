@@ -64,12 +64,18 @@ app.use(bodyParser.urlencoded({
   extended: false
 }));
 
-server.listen(9000)
+server.listen(80)
 
 console.log("server start")
 
-app.get('/', (req, res) => { //메인 페이지
+app.get('/game', (req, res) => { //메인 페이지
   res.sendfile(__dirname+"/game.html")
+});
+app.get('/main', (req, res) => { //메인 페이지
+  res.sendfile(__dirname+"/main.html")
+});
+app.get('/', (req, res) => { //메인 페이지
+  res.sendfile(__dirname+"/main.html")
 });
 app.get('/res/:resource', (req, res) => {
   res.sendfile(__dirname+"/res/"+req.params.resource)

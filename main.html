@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <script>
+        window.onload = function () {
+            document.getElementById("asdf").style.height = window.innerHeight + "px";
+            document.getElementById("asdf").style.width = window.innerWidth + "px";
+        }
+    </script>
+    <style>
+        #asdf {
+            /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#fcd6d6+0,fe9090+50,ff3a3a+100 */
+            background: rgb(252, 214, 214);
+            /* Old browsers */
+            background: -moz-linear-gradient(45deg, rgba(252, 214, 214, 1) 0%, rgba(254, 144, 144, 1) 50%, rgba(255, 58, 58, 1) 100%);
+            /* FF3.6-15 */
+            background: -webkit-linear-gradient(45deg, rgba(252, 214, 214, 1) 0%, rgba(254, 144, 144, 1) 50%, rgba(255, 58, 58, 1) 100%);
+            /* Chrome10-25,Safari5.1-6 */
+            background: linear-gradient(45deg, rgba(252, 214, 214, 1) 0%, rgba(254, 144, 144, 1) 50%, rgba(255, 58, 58, 1) 100%);
+            /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+            filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fcd6d6', endColorstr='#ff3a3a', GradientType=1);
+            /* IE6-9 fallback on horizontal gradient */
+        }
+
+        div#Logo {
+            text-shadow: 0 0 35px #000000;
+            font-size: 4em;
+            width: 100%;
+            /* color: #ffffff; */
+            text-align: center
+        }
+
+        div.btn {
+            width: 500px;
+            height: 70px;
+            -webkit-box-shadow: 0 0 10px 1px #A3A3A3;
+            box-shadow: 0 0 10px 1px #A3A3A3;
+            background: rgb(255, 141, 141);
+            margin: auto;
+            margin-top: 15px;
+            display: table;
+            outline: 2px solid rgb(255, 255, 255);
+            outline-offset: 0px;
+            text-align: center;
+            color: #000000
+        }
+
+        .text {
+            display: table-cell;
+            vertical-align: middle;
+            width: 100%;
+            margin: auto
+        }
+
+        body {
+            display: table-cell;
+            vertical-align: middle;
+        }
+
+        a {
+            text-decoration: none;
+
+        }
+    </style>
+</head>
+
+<body id="asdf">
+    <div id="menu" style="width: 100%">
+        <div id="Logo">Master of Wizard</div>
+        <a href="/game">
+            <div class="btn" onmouseover="mouseOver(this)" onmouseout="mouseOut(this)">
+                <div class="text">게임 시작</div>
+            </div>
+        </a>
+        <div class="btn" onmouseover="mouseOver(this)" onmouseout="mouseOut(this)">
+            <div class="text">로그인</div>
+        </div>
+    </div>
+</body>
+<script>
+    function mouseOut(obj) {
+
+        obj.style.backgroundColor = rgbToHex("rgb(255, 141, 141)");
+    }
+    function mouseOver(obj) {
+        obj.style.backgroundColor = "#ffffff";
+    }
+    function rgbToHex(rgbType) {
+        var rgb = rgbType.replace(/[^%,.\d]/g, "");
+        rgb = rgb.split(",");
+        for (var x = 0; x < 3; x++) {
+            if (rgb[x].indexOf("%") > -1) rgb[x] = Math.round(parseFloat(rgb[x]) * 2.55);
+        }
+        var toHex = function (string) {
+            string = parseInt(string, 10).toString(16);
+            string = (string.length === 1) ? "0" + string : string;
+            return string;
+        };
+        var r = toHex(rgb[0]);
+        var g = toHex(rgb[1]);
+        var b = toHex(rgb[2]);
+        var hexType = "#" + r + g + b;
+        return hexType;
+    } 
+</script>
+
+</html>

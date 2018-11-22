@@ -5,8 +5,6 @@
     <meta charset="UTF-8">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.js"></script>
     <script src="./res/skill.js"></script>
-    <script src="./res/pick.js"></script>
-    <title>MCMT</title>
     <style>
         canvas {
             position: absolute;
@@ -19,17 +17,6 @@
             /* 
             width: 828px;
             height: 328px; */
-        }
-
-        td>img {
-            overflow: hidden;
-            height: 100px;
-            width: 100px;
-        }
-
-        td {
-            width: 100px;
-            height: 100px;
         }
 
         body {
@@ -74,7 +61,6 @@
         }
         socket.on('matching', (event) => {
             clearInterval(matching);
-            // document.body.innerHTML = '<h3 style="text-align:center">스킬 3개를 선택하세요.</h3><table style="border-spacing: 50px 50px;position: absolute;top: 50%;left: 50%;transform: translateX(-50%) translateY(-50%);"><tr>    <td><img id="1" src="jot.jpg" onclick="high(this)"></td>    <td><img id="2" src="jot.jpg" onclick="high(this)"></td>   <td><img id="3" src="jot.jpg" onclick="high(this)"></td><td><img id="4" src="jot.jpg" onclick="high(this)"></td></tr><tr> <td><img id="5" src="jot.jpg" onclick="high(this)"></td><td><img id="6" src="jot.jpg" onclick="high(this)"></td> <td><img id="7" src="jot.jpg" onclick="high(this)"></td> <td><img id="8" src="jot.jpg" onclick="high(this)"></td></tr><tr>   <th style="font-size: 2em;" colspan="4" id="skillname">스킬명</th></tr><tr>   <th style="font-size: 1.5em;" colspan="4" id="whatSkill">스킬 설명</th></tr></table><button id="matchButton" style="position: absolute;top: 90%;left: 50%;transform: translateX(-50%);">선택 완료</button>'
             document.body.innerHTML = '로딩중'
             roomname = event.roomname
             if (event.player === 1) {
@@ -264,6 +250,12 @@
                     mySkills.push(new energyBall(player.x, player.y, angle, Math.sin(angle), Math.cos(angle),6))
                 }
             })
+        function setCookie(cookie_name, value, days) {
+            var exdate = new Date();
+            exdate.setDate(exdate.getDate() + days);
+            var cookie_value = escape(value) + ((days == null) ? '' : ';    expires=' + exdate.toUTCString());
+            document.cookie = cookie_name + '=' + cookie_value;
+        }
     </script>
 </body>
 
