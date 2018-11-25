@@ -1,6 +1,10 @@
 let throwSkills = {}
+let skillTypes = {
+    "THROW":"THROW_SKILL",
+    "IMMEDIATELY":"IMMEDIATELY_SKILL"
+}
 let ballImg = new Image()
-ballImg.src = './res/energyball.png'
+ballImg.src = './res/fireball.png'
 function slow(per) {
     socket.emit("slow", {
         per: per
@@ -17,38 +21,47 @@ function dotDamage(dam, sec, times) {
     }
 }
 
+
 class skill {
-    constructor(effect,effectImg,imgWdith,imgHeight) {
+    constructor(effect,coolTime,skillType) {
         this.effect = effect
-        this.isLive = true
+        this.coolTime = coolTime
+        this.skillType = skillType;
     }
     effect() {
 
     }
-    render(){
-        
-    }
 }
 class throwSkill extends skill {
-    constructor(x, y, angle, mX, mY, effect,effectImg,imgWdith,imgHeight) {
-        super(effect,effectImg,imgWdith,imgHeight)
+    constructor(x, y, mX, mY,Imgsrc,imgWdith,imgHeight,coolTime, effect) {
+        super(effect,coolTime,skillTypes.THROW)
         this.x = x
-        this.y = y
+        this.y = y-imgWdith//현재 좌표
         this.tmpX = x
-        this.tmpY = y
-        this.angle = angle
+        this.tmpY = y//임시 좌표
         this.mX = mX
-        this.mY = mY
-        this.isThrowSkill = true
+        this.mY = mY//이동할 거리
+        this.img = new Image()
+        this.img.src = Imgsrc;
+        this.imgHeight = imgHeight;
+        this.imgWdith = imgWdith;
+        this.angle;
+        this.SPEED = 10
     }
-    move() {
-
+    render(){
+        context.drawImage(this.img, this.x, this.y)
+    }
+    move(){
+        this.x += (this.mX*this.SPEED);
+        this.y += (this.mY*this.SPEED);
     }
 }
-class energyBall extends throwSkill {
-    constructor(x, y, angle, mX, mY,speed) {
-        super(x, y, angle, mX*speed, mY*speed, function () {
-            damage(100)
-        },ballImg,17,17)
+
+class fireball extends throwSkill{
+    constructor(x,y,mx,my){
+        if(mx>=0)
+            super(x,y,mx,my,"res/fireball_right.png",40,15,1000,damage(10));
+        else
+            super(x,y,mx,my,"res/fireball_left.png",40,15,1000,damage(10));
     }
 }

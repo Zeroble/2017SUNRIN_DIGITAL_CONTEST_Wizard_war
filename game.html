@@ -4,7 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.js"></script>
-    <script src="./res/skill.js"></script>
     <style>
         canvas {
             position: absolute;
@@ -20,7 +19,7 @@
         }
 
         body {
-            background-size: 1000px 500px;
+            background-size: 1500px 750px;
             background-position: center center;
             background-repeat: no-repeat;
             background-attachment: fixed;
@@ -42,8 +41,8 @@
         let mySkills = []
         let otherPlayerImg = new Image()
         let matching
-        const canvasWidth = 828
-        const canvasHeight = 328
+        const canvasWidth = 1235
+        const canvasHeight = 492
         let game_run
         let isSkillSelected = false
         groundImage = new Image()
@@ -74,10 +73,10 @@
             mouseClickedPoint = new mouseClickedPoint()
             points = new points()
             socket.emit("ready", {
-                    roomname: roomname,
-                    x: player.tempX,
-                    y: player.tempY
-                })
+                roomname: roomname,
+                x: player.tempX,
+                y: player.tempY
+            })
             // document.getElementById('matchButton').onclick = function () {
             //     socket.emit("ready", {
             //         roomname: roomname,
@@ -89,17 +88,20 @@
         socket.on('ready', (event) => {
             document.body.innerHTML = '<canvas id="gameCanvas" width="' + canvasWidth + '" height="' + canvasHeight + '"></canvas>'
             document.body.background = './res/map_outer.png'
-            document.body.style.backgroundColor = "black";
+            document.body.style.backgroundColor = "white";
             // let clientXY = [screen.height-20,document.body.clientWidth]
             canvas = document.getElementById('gameCanvas');
             context = canvas.getContext('2d');
+            
+            document.body.style.cursor = 'Auto'
             game_run = window.requestAnimationFrame(run);
+            
         })
         var canvas
         var context
         var roomname
 
-        const SPEED = 3
+        const SPEED = 4
         class gameObject {
             constructor(width, height) {
                 this.x = 0
@@ -112,7 +114,7 @@
             constructor(img, x) {
                 super(16 * 2, 20 * 2)
                 this.playerImg = new Image()
-                this.playerImg.src = img
+                this.playerImg.src = img//경로
                 this.x = x
                 this.y = (canvasHeight - this.height) / 2
                 this.tempX = this.x
@@ -142,7 +144,7 @@
         function run() {
             context.clearRect(0, 0, canvas.width, canvas.height);
             // context.drawImage(groundImage, 0, 0, canvas.width, canvas.height)
-            context.drawImage(player.playerImg, player.x, player.y, player.width, player.height)
+
 
             points.subx = mouseClickedPoint.x - player.tempX
             points.suby = mouseClickedPoint.y - player.tempY
@@ -152,12 +154,26 @@
 
             for (let i in copyedUserObjects) {
                 if (i == socket.id) {
-                    player.x = copyedUserObjects[i].x
-                    player.y = copyedUserObjects[i].y
+                    context.drawImage(player.playerImg, copyedUserObjects[i].x, copyedUserObjects[i].y, player.width, player.height)
+                    context.fillStyle = "black"
+                    context.fillRect(copyedUserObjects[i].x - 35, copyedUserObjects[i].y - 28, 110, 18)
+                    if(copyedUserObjects[i].hp>0){
+                    context.fillStyle = "red"
+                    context.fillRect(copyedUserObjects[i].x - 30, copyedUserObjects[i].y - 24, copyedUserObjects[i].hp/4, 10)
+                    }
                 }
                 else {
                     context.drawImage(otherPlayerImg, copyedUserObjects[i].x, copyedUserObjects[i].y, player.width, player.height)
+                    context.fillStyle = "black"
+                    context.fillRect(copyedUserObjects[i].x - 35, copyedUserObjects[i].y - 28, 110, 18)
+                    if(copyedUserObjects[i].hp>0){
+                    context.fillStyle = "red"
+                    context.fillRect(copyedUserObjects[i].x - 30, copyedUserObjects[i].y - 24, copyedUserObjects[i].hp/4, 10)
+                    }
                 }
+            }
+            for (let i in mySkills) {
+                mySkills[i].render();
             }
             if (points.subx > 0 ? player.tempX + points.cos * SPEED > mouseClickedPoint.x : player.tempX + points.cos * SPEED < mouseClickedPoint.x || points.suby >= 0 ? player.tempY + points.sin * SPEED > mouseClickedPoint.y : player.tempY + points.sin * SPEED < mouseClickedPoint.y) {
                 //근처에 도달하면 정지
@@ -186,25 +202,30 @@
                 stopMoving()
             }
             else {
-                player.tempX += points.cos * SPEED
-                player.tempY += points.sin * SPEED
+                player.tempX += (points.cos * SPEED)
+                player.tempY += (points.sin * SPEED)
                 // console.log("moving")
             }
-            for(let i= 0;i<mySkills.length;i++ ){
-                if(mySkills[i].isLive){
-                    mySkills[i].tempX += mySkills[i].mX
-                    mySkills[i].tempY += mySkills[i].mY
+            for (let i = 0; i < mySkills.length; i++) {
+                if (mySkills[i].skillType == skillTypes.THROW) {
+                    mySkills[i].move();
+                    if(mySkills[i].x<0||mySkills[i].x>canvasWidth||mySkills[i].y<0||mySkills[i].y>canvasHeight){
+                         mySkills.splice(i,1)
+                    }
                 }
             }
             if (player.tempX != mouseClickedPoint.x && player.tempY != mouseClickedPoint.y) {//움직이지 않을때
                 socket.emit("update", {
                     x: player.tempX,
                     y: player.tempY,
-                    roomname: roomname,
-                    mySkills:mySkills
+                    roomname: roomname
                 })
             }
-            game_run = window.requestAnimationFrame(run);
+                socket.emit("updateSkill", {
+                    roomname:roomname,
+                    skills:mySkills
+                })
+             game_run = window.requestAnimationFrame(run);
 
         }
         socket.on('update', (userObjects) => {
@@ -214,7 +235,7 @@
                 console.log(error)
             }
         })
-        socket.on('otheruser_disconnect',(data)=>{
+        socket.on('otheruser_disconnect', (data) => {
             console.log('disconnected')
             document.body.innerHTML = '연결 끊어짐'
             document.body.style.background = 'white'
@@ -243,20 +264,32 @@
                 mouseClickedPoint.x = pos.x - (player.width / 2)
                 mouseClickedPoint.y = pos.y - (player.height / 2)
             }
-            else if (event.button == 0&&isSkillSelected) {
-                    let pos = getMousePosition(event)
-                    let angle =  Math.atan2(pos.x-player.x,pos.y-player.y)
-                    document.body.style.cursor = 'Auto'
-                    mySkills.push(new energyBall(player.x, player.y, angle, Math.sin(angle), Math.cos(angle),6))
-                }
-            })
+            else if (event.button == 0) { //왼쪽 선택시
+                let pos = getMousePosition(event)
+                tmp = Math.atan2(pos.y - player.tempY-20,pos.x - player.tempX)
+                mySkills.push(new fireball(player.tempX, player.tempY+player.width*(3/2), Math.cos(tmp), Math.sin(tmp)))
+            }
+        })
+
+
         function setCookie(cookie_name, value, days) {
             var exdate = new Date();
             exdate.setDate(exdate.getDate() + days);
             var cookie_value = escape(value) + ((days == null) ? '' : ';    expires=' + exdate.toUTCString());
             document.cookie = cookie_name + '=' + cookie_value;
         }
+
+        socket.on("gameResult",(data)=>{
+            if(data == "WIN"){
+                window.location = "/win"
+            }
+            else{
+                window.location = "/lose"
+            }
+        })
     </script>
 </body>
+
+<script src="./res/skill.js"></script>
 
 </html>
